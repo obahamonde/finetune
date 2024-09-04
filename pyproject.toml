@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "aws-glue-dev"
+version = "0.0.1"
+description = "AWS Glue Jobs Utils"
+authors = ["oscar.bahamonde <oscar.bahamonde@indiecloud.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+awswrangler = "^3.9.1"
+pandas = "^2.2.2"
+typing-extensions = "^4.12.2"
+boto3 = "^1.35.6"
+aws-glue-sessions = "^1.0.6"
+jupyterlab = "^4.2.5"
+rich = "^13.8.0"
+click = "^8.1.7"
+scikit-learn = "^1.5.1"
+orjson = "^3.10.7"
+fsspec = "^2024.6.1"
+s3fs = "^2024.6.1"
+python-dotenv = "^1.0.1"
+transformers = "^4.44.2"
+peft = "^0.12.0"
+bitsandbytes = "^0.43.3"
+trl = "^0.10.1"
+accelerate = "^0.34.0"
+fastapi = "^0.112.2"
+datasets = "^2.21.0"
+uvicorn = "^0.30.6"
+python-multipart = "^0.0.9"
+openai = "^1.43.0"
+prisma = "^0.15.0"
+boto3-stubs = {extras = ["all"], version = "^1.35.10"}
+cachetools = "^5.5.0"
+pyspark = "^3.5.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+glue = "aws_glue_dev.cli:main"

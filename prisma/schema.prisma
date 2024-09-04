@@ -1,0 +1,166 @@
+generator client {
+  provider  = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model VectorStore {
+  id             String            @id @unique
+  object         String            @default("vector_store")
+  created_at     Int               @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  name           String
+  usage_bytes    Int               @default(0)
+  file_counts    Json?
+  status         String            @default("in_progress")
+  expires_after  Json?
+  expires_at     Int?
+  last_active_at Int?
+  metadata       Json?
+  files          VectorStoreFile[]
+}
+
+model VectorStoreFile {
+  id                String      @id @unique
+  object            String      @default("vector_store.file")
+  usage_bytes       Int         @default(0)
+  created_at        Int         @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  vector_store_id   String
+  status            String      @default("in_progress")
+  last_error        Json?
+  chunking_strategy Json?
+  vectorStore       VectorStore @relation(fields: [vector_store_id], references: [id])
+
+  @@index([vector_store_id], map: "vector_store_idx")
+}
+
+model Assistant {
+  id              String   @id @unique
+  object          String   @default("assistant")
+  created_at      Int
+  name            String?
+  description     String?
+  model           String
+  instructions    String?
+  tools           Json
+  file_ids        String[]
+  metadata        Json?
+  response_format Json?
+  temperature     Float?
+  top_p           Float?
+  runs            Run[]
+}
+
+model Thread {
+  id             String    @id @unique
+  object         String    @default("thread")
+  created_at     Int
+  metadata       Json?
+  tool_resources Json?
+  messages       Message[]
+  runs           Run[]
+}
+
+model Message {
+  id           String   @id @unique
+  object       String   @default("thread.message")
+  created_at   Int
+  thread_id    String
+  role         String
+  content      Json
+  assistant_id String?
+  run_id       String?
+  file_ids     String[]
+  metadata     Json?
+  run          Run?     @relation(fields: [run_id], references: [id])
+  thread       Thread   @relation(fields: [thread_id], references: [id])
+}
+
+model Run {
+  id                    String    @id @unique
+  object                String    @default("thread.run")
+  created_at            Int
+  thread_id             String
+  assistant_id          String
+  status                String
+  required_action       Json?
+  last_error            Json?
+  expires_at            Int?
+  started_at            Int?
+  cancelled_at          Int?
+  failed_at             Int?
+  completed_at          Int?
+  model                 String
+  instructions          String
+  tools                 Json
+  file_ids              String[]
+  metadata              Json?
+  usage                 Json?
+  temperature           Float?
+  top_p                 Float?
+  parallel_tool_calls   Boolean
+  max_completion_tokens Int?
+  max_prompt_tokens     Int?
+  response_format       Json?
+  truncation_strategy   Json?
+  messages              Message[]
+  assistant             Assistant @relation(fields: [assistant_id], references: [id])
+  thread                Thread    @relation(fields: [thread_id], references: [id])
+}
+
+model FineTuningJob {
+  id               String   @id @unique
+  object           String   @default("fine_tuning.job")
+  created_at       Int      @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  model            String
+  training_file    String
+  validation_file  String?
+  hyperparameters  Json
+  status           String   @default("queued")
+  fine_tuned_model String?
+  organization_id  String
+  result_files     String[]
+  trained_tokens   Int?
+  error            Json?
+  finished_at      Int?
+  metadata         Json?
+  integrations     Json?
+  seed             Int?
+  estimated_finish Int?
+}
+
+model FineTunedModel {
+  id              String @id @unique
+  object          String @default("model")
+  created_at      Int    @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  fine_tuning_job String
+  model           String
+  status          String
+  organization_id String
+  metadata        Json?
+}
+
+model FineTuningEvent {
+  id                 String @id @unique
+  object             String @default("fine_tuning.job.event")
+  created_at         Int    @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  level              String
+  message            String
+  data               Json?
+  type               String
+  fine_tuning_job_id String
+}
+
+model FineTuningCheckpoint {
+  id                          String @id @unique
+  object                      String @default("fine_tuning.job.checkpoint")
+  created_at                  Int    @default(dbgenerated("EXTRACT(epoch FROM now())"))
+  fine_tuned_model_checkpoint String
+  metrics                     Json
+  fine_tuning_job_id          String
+  step_number                 Int
+}
